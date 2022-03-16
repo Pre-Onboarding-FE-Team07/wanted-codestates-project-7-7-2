@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
-import { UserReposQuery, useUserReposLazyQuery } from '../generated/graphql';
+import { useReactiveVar } from '@apollo/client';
+import React from 'react';
+import { usernameVar, userVar } from '../client';
+import { useUserReposLazyQuery } from '../generated/graphql';
 
-type SearchProps = {
-  user: UserReposQuery['user'];
-  setUser: React.Dispatch<React.SetStateAction<UserReposQuery['user']>>;
-};
-
-function Search({ user, setUser }: SearchProps): React.ReactElement {
+function Search(): React.ReactElement {
+  const user = useReactiveVar(userVar);
+  const value = useReactiveVar(usernameVar);
   const [getUserRepos] = useUserReposLazyQuery();
-  const [value, setValue] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => usernameVar(e.target.value);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const res = await getUserRepos({ variables: { username: value } });
-    setUser(res?.data?.user);
+    try {
+      const res = await getUserRepos({ variables: { username: value } });
+      if (!res?.data?.user) {
+        alert('사용자를 찾을 수 없습니다. ');
+        usernameVar('');
+        return;
+      }
+      userVar(res?.data?.user);
+    } catch (error) {
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요. ');
+      usernameVar('');
+      console.log(error);
+    }
   };
 
   return (
@@ -43,7 +52,7 @@ function Search({ user, setUser }: SearchProps): React.ReactElement {
                 >
                   {user.login}
                 </a>
-                <span className="ml-1">{`(${user.name})`}</span>
+                {user.name && <span className="ml-1">{`(${user.name})`}</span>}
               </p>
               {user.bio && <p className="text-ellipsis">{user.bio}</p>}
             </div>
