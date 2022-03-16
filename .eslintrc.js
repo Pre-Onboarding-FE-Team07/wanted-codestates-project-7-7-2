@@ -24,5 +24,8 @@ module.exports = {
     project: './tsconfig.json',
   },
   plugins: ['react', '@typescript-eslint', 'tailwindcss'],
-  rules: {},
+  rules: {
+    'react/prop-types': 0,
+    'tailwindcss/classnames-order': 0,
+  },
 };
