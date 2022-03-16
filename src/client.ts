@@ -9,7 +9,7 @@ const client = new ApolloClient({
   },
 });
 
-export const inputValueVar = makeVar('');
+export const usernameVar = makeVar('');
 export const userVar = makeVar<UserReposQuery['user'] | null>(null);
 
 export default client;
