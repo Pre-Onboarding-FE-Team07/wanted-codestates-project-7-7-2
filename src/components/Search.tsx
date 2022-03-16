@@ -1,25 +1,21 @@
 import React, { useState } from 'react';
+import { UserReposQuery, useUserReposLazyQuery } from '../generated/graphql';
 
-type UserType = {
-  id: string;
-  login: string;
-  name: string | null;
-  bio: string | null;
-  avatarUrl: any;
+type SearchProps = {
+  user: UserReposQuery['user'];
+  setUser: React.Dispatch<React.SetStateAction<UserReposQuery['user']>>;
 };
 
-type UserProps = {
-  user: UserType | null;
-};
-
-function Search({ user }: UserProps): React.ReactElement {
+function Search({ user, setUser }: SearchProps): React.ReactElement {
+  const [getUserRepos] = useUserReposLazyQuery();
   const [value, setValue] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('submit');
+    const res = await getUserRepos({ variables: { username: value } });
+    setUser(res?.data?.user);
   };
 
   return (
