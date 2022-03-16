@@ -1,23 +1,9 @@
-import React, { useState } from 'react';
-import { UserReposQuery, useUserReposLazyQuery } from '../generated/graphql';
+import React from 'react';
+import { UserReposQuery } from '../generated/graphql';
 
-type SearchProps = {
-  user: UserReposQuery['user'];
-  setUser: React.Dispatch<React.SetStateAction<UserReposQuery['user']>>;
-};
-
-function Search({ user, setUser }: SearchProps): React.ReactElement {
-  const [getUserRepos] = useUserReposLazyQuery();
-  const [value, setValue] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const res = await getUserRepos({ variables: { username: value } });
-    setUser(res?.data?.user);
-  };
-
+function Search({
+  user, value, setValue, handleSubmit,
+}: SearchProps): React.ReactElement {
   return (
     <section className="absolute top-8 left-10 rounded-lg bg-white px-6  pt-2 pb-4 shadow-lg first-letter:space-y-4">
       <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
@@ -25,7 +11,7 @@ function Search({ user, setUser }: SearchProps): React.ReactElement {
           className="border-b border-gray-200 px-1 py-2 placeholder:text-base focus:outline-none focus:ring-0"
           placeholder="Github 아이디 검색"
           value={value}
-          onChange={handleChange}
+          onChange={(e) => setValue(e.target.value)}
         />
         <button type="submit" className="text-gray-500">
           ⏎
@@ -58,3 +44,10 @@ function Search({ user, setUser }: SearchProps): React.ReactElement {
 }
 
 export default Search;
+
+type SearchProps = {
+  user: UserReposQuery['user'];
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+};
