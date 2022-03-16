@@ -52,9 +52,7 @@ function Search({ user }: UserProps): React.ReactElement {
                   {user.login}
                 </a>
                 <span className="ml-1">
-                  (
-                  {user.name}
-                  )
+                  {`(${user.name})`}
                 </span>
               </p>
               {user.description && <p className="text-ellipsis">{user.description}</p>}
