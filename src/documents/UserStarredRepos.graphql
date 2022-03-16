@@ -1,0 +1,19 @@
+query UserRepos($username: String!) {
+  user(login: $username) {
+    id
+    login
+    name
+    bio
+    avatarUrl(size: 100)
+
+    starredRepositories(first: 100) {
+      nodes {
+        id
+        name
+        owner {
+          login
+        }
+      }
+    }
+  }
+}
