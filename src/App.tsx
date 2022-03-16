@@ -6,7 +6,7 @@ type UserType = {
   name: string;
   login: string;
   imgUrl: string; // avatar_url
-  contact: string; // bio
+  description: string; // bio
 };
 
 export default function App() {

@@ -5,7 +5,7 @@ type UserType = {
   name: string;
   login: string;
   imgUrl: string; // avatar_url
-  contact: string; // bio
+  description: string; // bio
 };
 
 type UserProps = {
@@ -57,7 +57,7 @@ function Search({ user }: UserProps): React.ReactElement {
                   )
                 </span>
               </p>
-              {user.contact && <p className="text-ellipsis">{user.contact}</p>}
+              {user.description && <p className="text-ellipsis">{user.description}</p>}
             </div>
           </div>
           <p className="mt-4 pt-4 text-sm text-gray-400">
