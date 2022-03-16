@@ -1,10 +1,32 @@
+import { useReactiveVar } from '@apollo/client';
 import React from 'react';
-import { UserReposQuery } from '../generated/graphql';
+import { inputValueVar, userVar } from '../client';
+import { useUserReposLazyQuery } from '../generated/graphql';
 
-function Search({
-  user, value, setValue, handleSubmit,
-}: SearchProps): React.ReactElement {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
+function Search(): React.ReactElement {
+  const user = useReactiveVar(userVar);
+  const value = useReactiveVar(inputValueVar);
+  const [getUserRepos] = useUserReposLazyQuery();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => inputValueVar(e.target.value);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const res = await getUserRepos({ variables: { username: value } });
+      if (!res?.data?.user) {
+        alert('사용자를 찾을 수 없습니다. ');
+        inputValueVar('');
+        return;
+      }
+      userVar(res?.data?.user);
+    } catch (error) {
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요. ');
+      inputValueVar('');
+      console.log(error);
+    }
+  };
+
   return (
     <section className="absolute top-8 left-10 rounded-lg bg-white px-6  pt-2 pb-4 shadow-lg first-letter:space-y-4">
       <form className="flex items-center space-x-2" onSubmit={handleSubmit}>
@@ -45,10 +67,3 @@ function Search({
 }
 
 export default Search;
-
-type SearchProps = {
-  user: UserReposQuery['user'];
-  value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-};

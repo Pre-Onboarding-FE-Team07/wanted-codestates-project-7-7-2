@@ -1,4 +1,5 @@
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache, makeVar } from '@apollo/client';
+import { UserReposQuery } from './generated/graphql';
 
 const client = new ApolloClient({
   uri: 'https://api.github.com/graphql',
@@ -7,5 +8,8 @@ const client = new ApolloClient({
     Authorization: `Bearer ${process.env.REACT_APP_GITHUB_TOKEN}`,
   },
 });
+
+export const inputValueVar = makeVar('');
+export const userVar = makeVar<UserReposQuery['user'] | null>(null);
 
 export default client;
