@@ -1,3 +1,20 @@
+import { useState } from 'react';
+import Search from './components/Search';
+
+type UserType = {
+  id: string;
+  login: string;
+  name: string | null;
+  bio: string | null;
+  avatarUrl: any;
+};
+
 export default function App() {
-  return <div className="text-lg">Hello, World!</div>;
+  const [user, setUser] = useState<UserType | null>(null);
+
+  return (
+    <div className="relative text-lg">
+      <Search user={user} />
+    </div>
+  );
 }
