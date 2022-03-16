@@ -9,8 +9,19 @@ export default function App() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const res = await getUserRepos({ variables: { username: inputValue } });
-    setUser(res?.data?.user);
+    try {
+      const res = await getUserRepos({ variables: { username: inputValue } });
+      if (!res?.data?.user) {
+        alert('사용자를 찾을 수 없습니다. ');
+        setInputValue('');
+        return;
+      }
+      setUser(res?.data?.user);
+    } catch (error) {
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해주세요. ');
+      setInputValue('');
+      console.log(error);
+    }
   };
 
   return (
