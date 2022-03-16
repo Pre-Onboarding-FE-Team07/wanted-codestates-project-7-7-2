@@ -3,10 +3,10 @@ import Search from './components/Search';
 
 type UserType = {
   id: string;
-  name: string;
   login: string;
-  imgUrl: string; // avatar_url
-  description: string; // bio
+  name: string | null;
+  bio: string | null;
+  avatarUrl: any;
 };
 
 export default function App() {
