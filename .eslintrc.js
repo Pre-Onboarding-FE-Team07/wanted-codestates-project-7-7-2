@@ -11,6 +11,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
+    'plugin:tailwindcss/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
   parser: '@typescript-eslint/parser',
@@ -22,6 +23,6 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json',
   },
-  plugins: ['react', '@typescript-eslint'],
+  plugins: ['react', '@typescript-eslint', 'tailwindcss'],
   rules: {},
 };
