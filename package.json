@@ -43,7 +43,9 @@
     "eject": "react-scripts eject",
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "husky install",
-    "generate": "graphql-codegen -r dotenv/config --config codegen.yml"
+    "generate": "graphql-codegen -r dotenv/config --config codegen.yml",
+    "prestart": "yarn generate",
+    "prebuild": "yarn generate"
   },
   "browserslist": {
     "production": [
