@@ -10,13 +10,7 @@ type UserType = {
 };
 
 export default function App() {
-  const [user, setUser] = useState<UserType | null>({
-    id: '52448114',
-    name: 'seomoon',
-    login: 'dev-seomoon',
-    imgUrl: 'https://avatars.githubusercontent.com/u/52448114?v=4',
-    contact: 'seomoon.frontend@gmail.com',
-  });
+  const [user, setUser] = useState<UserType | null>(null);
 
   return (
     <div className="relative text-lg">
