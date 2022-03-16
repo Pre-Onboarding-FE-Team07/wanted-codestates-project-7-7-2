@@ -1,20 +1,13 @@
 import { useState } from 'react';
 import Search from './components/Search';
-
-type UserType = {
-  id: string;
-  login: string;
-  name: string | null;
-  bio: string | null;
-  avatarUrl: any;
-};
+import { UserReposQuery } from './generated/graphql';
 
 export default function App() {
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useState<UserReposQuery['user']>(null);
 
   return (
     <div className="relative text-lg">
-      <Search user={user} />
+      <Search user={user} setUser={setUser} />
     </div>
   );
 }
