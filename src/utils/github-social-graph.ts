@@ -138,17 +138,7 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.zoom = zoom<SVGSVGElement, unknown>()
       .scaleExtent([constants.zoom.level.min, constants.zoom.level.max])
-      .on('zoom', ({ transform }) => {
-        if (
-          (transform.k < constants.zoom.threshold && this.isShown)
-          || (transform.k > constants.zoom.threshold && !this.isShown)
-        ) {
-          this.group.names.attr('display', this.isShown ? 'none' : 'inherit');
-          this.group.skeletons.attr('display', this.isShown ? 'inherit' : 'none');
-          this.isShown = !this.isShown;
-        }
-        Object.values(this.group).forEach((group) => group.attr('transform', transform));
-      });
+      .on('zoom', this.zoomed.bind(this));
   }
 
   public push(data: UserReposQuery['user']) {
@@ -317,6 +307,18 @@ export default class GithubSocialGraph extends EventTarget {
     avatars
       ?.attr('x', ({ x }) => (x || 0) - 50)
       ?.attr('y', ({ y }) => (y || 0) - 50);
+  }
+
+  private zoomed({ transform }: any) {
+    if (
+      (transform.k < constants.zoom.threshold && this.isShown)
+      || (transform.k > constants.zoom.threshold && !this.isShown)
+    ) {
+      this.group.names.attr('display', this.isShown ? 'none' : 'inherit');
+      this.group.skeletons.attr('display', this.isShown ? 'inherit' : 'none');
+      this.isShown = !this.isShown;
+    }
+    Object.values(this.group).forEach((group) => group.attr('transform', transform));
   }
 
   private clicked(_: any, node: ForcedNode) {
