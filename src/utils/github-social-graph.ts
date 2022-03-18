@@ -24,6 +24,23 @@ type ForcedLink = {
   target: ForcedNode | string | number;
 };
 
+const constants = {
+  zoom: {
+    init: 0.3,
+    threshold: 0.5,
+    level: {
+      min: 0.1,
+      max: 2,
+    },
+  },
+  force: {
+    decay: 0.05,
+    alpha: 0.5,
+    strength: -3000,
+    distance: 500,
+  },
+} as const;
+
 export default class GithubSocialGraph extends EventTarget {
   public graph: {
     nodes: ForcedNode[];
@@ -91,22 +108,30 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.isShown = true;
 
-    this.simulation = d3.forceSimulation<ForcedNode, ForcedLink>().alphaDecay(0.1);
+    this.simulation = d3
+      .forceSimulation<ForcedNode, ForcedLink>()
+      .alphaDecay(constants.force.decay);
+
     this.simulation.on('tick', this.tick.bind(this));
 
+    const lines = this.group('lines');
     const names = this.group('names');
     const skeletons = this.group('skeletons');
+    const avatars = this.group('avatars');
 
     this.zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 30])
+      .scaleExtent([constants.zoom.level.min, constants.zoom.level.max])
       .on('zoom', ({ transform }) => {
-        if ((transform.k < 0.3 && this.isShown) || (transform.k > 0.3 && !this.isShown)) {
+        if (
+          (transform.k < constants.zoom.threshold && this.isShown)
+          || (transform.k > constants.zoom.threshold && !this.isShown)
+        ) {
           names.attr('display', this.isShown ? 'none' : 'inherit');
           skeletons.attr('display', this.isShown ? 'inherit' : 'none');
           this.isShown = !this.isShown;
         }
-        Object.values(this.container).forEach((container) => container?.attr('transform', transform));
+        [lines, names, skeletons, avatars].forEach((group) => group.attr('transform', transform));
       });
   }
 
@@ -142,12 +167,12 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private updateForce() {
-    const charge = d3.forceManyBody().strength(-3000);
+    const charge = d3.forceManyBody().strength(constants.force.strength);
     const center = d3.forceCenter(this.size.w / 2, this.size.h / 2);
     const link = d3
       .forceLink<ForcedNode, ForcedLink>(this.graph.links)
       .id(({ id }) => id)
-      .distance(500);
+      .distance(constants.force.distance);
 
     this.simulation
       .nodes(this.graph.nodes)
@@ -160,7 +185,7 @@ export default class GithubSocialGraph extends EventTarget {
     this.drawSkeletons();
     this.drawAvatars();
 
-    this.simulation.alpha(0.5).restart();
+    this.simulation.alpha(constants.force.alpha).restart();
   }
 
   private drawLines() {
@@ -223,7 +248,7 @@ export default class GithubSocialGraph extends EventTarget {
       .selectAll('text')
       .data(this.graph.nodes.filter(({ login }) => !login))
       .join('circle')
-      .attr('r', 20)
+      .attr('r', 30)
       .style('fill', '#ccc');
   }
 
@@ -246,7 +271,11 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private updateZoom() {
-    const zoomTransform = d3.zoomIdentity.translate(this.size.w / 2, this.size.h / 2).scale(0.3);
+    const zoomTransform = d3
+      .zoomIdentity
+      .translate(this.size.w / 2, this.size.h / 2)
+      .scale(constants.zoom.init);
+
     this.svg.call(this.zoom).call(this.zoom.transform, zoomTransform);
   }
 
