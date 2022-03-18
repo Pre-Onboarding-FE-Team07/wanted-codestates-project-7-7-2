@@ -243,20 +243,7 @@ export default class GithubSocialGraph extends EventTarget {
             /* eslint-disable-next-line no-param-reassign */
             node.rect = (this as SVGGElement).getBBox();
           }))
-          .on('click', (_, node) => {
-            if (isInOrganization) return;
-            if (node.login) {
-              const { login: username } = node;
-              instance.dispatchEvent(
-                new CustomEvent('click-user', { detail: { username, node } }),
-              );
-            } else {
-              const { owner: { login: username } } = node;
-              instance.dispatchEvent(
-                new CustomEvent('click-repo', { detail: { username } }),
-              );
-            }
-          });
+          .on('click', instance.clicked.bind(instance));
       })
       .each(function ({ rect: { width, height } }) {
         select(this)
@@ -330,5 +317,29 @@ export default class GithubSocialGraph extends EventTarget {
     avatars
       ?.attr('x', ({ x }) => (x || 0) - 50)
       ?.attr('y', ({ y }) => (y || 0) - 50);
+  }
+
+  private clicked(_: any, node: ForcedNode) {
+    if (node.login) {
+      const { login: username } = node;
+      this.dispatchClickUserEvent(username, node);
+    } else {
+      const { isInOrganization, owner: { id, login: username } } = node;
+      if (isInOrganization) return;
+      if (this.nodeIds.includes(id)) {
+        const user = this.graph.nodes.find((u) => u.id === id);
+        if (user) this.dispatchClickUserEvent(username, user);
+      } else {
+        this.dispatchClickRepoEvent(username);
+      }
+    }
+  }
+
+  private dispatchClickUserEvent(username: string, node: ForcedNode) {
+    this.dispatchEvent(new CustomEvent('click-user', { detail: { username, node } }));
+  }
+
+  private dispatchClickRepoEvent(username: string) {
+    this.dispatchEvent(new CustomEvent('click-repo', { detail: { username } }));
   }
 }

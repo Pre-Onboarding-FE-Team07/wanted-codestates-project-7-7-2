@@ -27,5 +27,6 @@ module.exports = {
   rules: {
     'react/prop-types': 0,
     'tailwindcss/classnames-order': 0,
+    '@typescript-eslint/no-explicit-any': 'off',
   },
 };

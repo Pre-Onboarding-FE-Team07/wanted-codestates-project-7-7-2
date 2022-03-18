@@ -12,6 +12,7 @@ query UserRepos($username: String!) {
         name
         isInOrganization
         owner {
+          id
           login
         }
       }
