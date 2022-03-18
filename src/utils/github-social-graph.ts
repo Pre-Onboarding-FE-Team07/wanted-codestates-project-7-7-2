@@ -60,6 +60,13 @@ export default class GithubSocialGraph extends EventTarget {
 
   public svg: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
 
+  public group: {
+    lines: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+    names: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+    skeletons: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+    avatars: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+  };
+
   public container: {
     lines: Selection<BaseType | SVGLineElement, ForcedLink, BaseType, unknown> | null;
     names: Selection<BaseType | SVGGElement, ForcedNode, BaseType, unknown> | null;
@@ -78,14 +85,10 @@ export default class GithubSocialGraph extends EventTarget {
   constructor(parent: string) {
     super();
 
-    this.graph = {
-      nodes: [],
-      links: [],
-    };
-
     this.nodeIds = [];
-
+    this.graph = { nodes: [], links: [] };
     this.svg = select(parent).select('#network');
+
     if (this.svg.empty()) {
       this.svg = select(parent)
         .append('svg')
@@ -94,14 +97,30 @@ export default class GithubSocialGraph extends EventTarget {
         .attr('id', 'network');
     }
 
-    this.svg.append('g').attr('id', 'lines').attr('stroke', '#999').attr('stroke-opacity', 0.8);
-    this.svg.append('g').attr('id', 'names');
-    this.svg.append('g').attr('id', 'skeletons').attr('display', 'none');
-    this.svg.append('g').attr('id', 'avatars');
-
     this.size = {
       w: parseInt(this.svg.style('width'), 10),
       h: parseInt(this.svg.style('height'), 10),
+    };
+
+    this.group = {
+      lines: this.svg
+        .append('g')
+        .attr('id', 'lines')
+        .attr('stroke', '#999')
+        .attr('stroke-opacity', 0.8),
+
+      names: this.svg
+        .append('g')
+        .attr('id', 'names'),
+
+      skeletons: this.svg
+        .append('g')
+        .attr('id', 'skeletons')
+        .attr('display', 'none'),
+
+      avatars: this.svg
+        .append('g')
+        .attr('id', 'avatars'),
     };
 
     this.container = {
@@ -114,14 +133,8 @@ export default class GithubSocialGraph extends EventTarget {
     this.isShown = true;
 
     this.simulation = forceSimulation<ForcedNode, ForcedLink>()
-      .alphaDecay(constants.force.decay);
-
-    this.simulation.on('tick', this.tick.bind(this));
-
-    const lines = this.group('lines');
-    const names = this.group('names');
-    const skeletons = this.group('skeletons');
-    const avatars = this.group('avatars');
+      .alphaDecay(constants.force.decay)
+      .on('tick', this.ticked.bind(this));
 
     this.zoom = zoom<SVGSVGElement, unknown>()
       .scaleExtent([constants.zoom.level.min, constants.zoom.level.max])
@@ -130,11 +143,11 @@ export default class GithubSocialGraph extends EventTarget {
           (transform.k < constants.zoom.threshold && this.isShown)
           || (transform.k > constants.zoom.threshold && !this.isShown)
         ) {
-          names.attr('display', this.isShown ? 'none' : 'inherit');
-          skeletons.attr('display', this.isShown ? 'inherit' : 'none');
+          this.group.names.attr('display', this.isShown ? 'none' : 'inherit');
+          this.group.skeletons.attr('display', this.isShown ? 'inherit' : 'none');
           this.isShown = !this.isShown;
         }
-        [lines, names, skeletons, avatars].forEach((group) => group.attr('transform', transform));
+        Object.values(this.group).forEach((group) => group.attr('transform', transform));
       });
   }
 
@@ -192,9 +205,8 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private drawLines() {
-    const lines = this.group('lines');
-    lines.selectAll('line').remove();
-    this.container.lines = lines
+    this.group.lines.selectAll('line').remove();
+    this.container.lines = this.group.lines
       .selectAll('line')
       .data(this.graph.links)
       .join('line')
@@ -204,9 +216,8 @@ export default class GithubSocialGraph extends EventTarget {
   private drawNames() {
     /* eslint-disable-next-line @typescript-eslint/no-this-alias */
     const instance = this;
-    const names = this.group('names');
-    names.selectAll('g').remove();
-    this.container.names = names
+    this.group.names.selectAll('g').remove();
+    this.container.names = this.group.names
       .selectAll('text')
       .data(this.graph.nodes)
       .join('g')
@@ -245,9 +256,8 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private drawSkeletons() {
-    const skeletons = this.group('skeletons');
-    skeletons.selectAll('circle').remove();
-    this.container.skeletons = skeletons
+    this.group.skeletons.selectAll('circle').remove();
+    this.container.skeletons = this.group.skeletons
       .selectAll('text')
       .data(this.graph.nodes.filter(({ login }) => !login))
       .join('circle')
@@ -256,9 +266,8 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private drawAvatars() {
-    const avatars = this.group('avatars');
-    avatars.selectAll('foreignObject').remove();
-    this.container.avatars = avatars
+    this.group.avatars.selectAll('foreignObject').remove();
+    this.container.avatars = this.group.avatars
       .selectAll('circle')
       .data(this.graph.nodes.filter(({ login }) => login))
       .join('foreignObject')
@@ -281,26 +290,32 @@ export default class GithubSocialGraph extends EventTarget {
     this.svg.call(this.zoom).call(this.zoom.transform, zoomTransform);
   }
 
-  private tick() {
-    this.container.avatars?.attr('x', ({ x }) => (x || 0) - 50).attr('y', ({ y }) => (y || 0) - 50);
+  private ticked() {
+    const {
+      lines, names, skeletons, avatars,
+    } = this.container;
 
-    const text: Selection<BaseType, ForcedNode, BaseType, unknown> | undefined = this.container.names?.selectAll('text');
-    const rect: Selection<BaseType, ForcedNode, BaseType, unknown> | undefined = this.container.names?.selectAll('rect');
+    const text = names?.selectAll<SVGTextElement, ForcedNode>('text');
+    const rect = names?.selectAll<SVGTextElement, ForcedNode>('rect');
 
-    text?.attr('x', (({ x }) => x || 0))?.attr('y', (({ y }) => y || 0));
-    rect
-      ?.attr('x', ({ x, rect: { width } }) => (x || 0) - width / 2 - 10 / 2)
-      ?.attr('y', ({ y, rect: { height } }) => (y || 0) - height / 2 - 5 / 2);
-
-    this.container.skeletons?.attr('cx', ({ x }) => x || 0)?.attr('cy', ({ y }) => y || 0);
-    this.container.lines
+    lines
       ?.attr('x1', (link) => (link.source as ForcedNode).x || 0)
       ?.attr('y1', (link) => (link.source as ForcedNode).y || 0)
       ?.attr('x2', (link) => (link.target as ForcedNode).x || 0)
       ?.attr('y2', (link) => (link.target as ForcedNode).y || 0);
-  }
 
-  private group(name: keyof GithubSocialGraph['container']) {
-    return this.svg.select(`#${name}`);
+    text
+      ?.attr('x', (({ x }) => x || 0))?.attr('y', (({ y }) => y || 0));
+
+    rect
+      ?.attr('x', ({ x, rect: { width } }) => (x || 0) - width / 2 - 10 / 2)
+      ?.attr('y', ({ y, rect: { height } }) => (y || 0) - height / 2 - 5 / 2);
+
+    skeletons
+      ?.attr('cx', ({ x }) => x || 0)?.attr('cy', ({ y }) => y || 0);
+
+    avatars
+      ?.attr('x', ({ x }) => (x || 0) - 50)
+      ?.attr('y', ({ y }) => (y || 0) - 50);
   }
 }
