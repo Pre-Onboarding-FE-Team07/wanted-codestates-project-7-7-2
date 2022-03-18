@@ -23,7 +23,7 @@ type ForcedLink = {
   target: ForcedNode | string | number;
 };
 
-export default class GithubSocialGraph {
+export default class GithubSocialGraph extends EventTarget {
   public graph: {
     nodes: ForcedNode[];
     links: ForcedLink[];
@@ -50,6 +50,8 @@ export default class GithubSocialGraph {
   private isShown: boolean;
 
   constructor(parent: string) {
+    super();
+
     this.graph = {
       nodes: [],
       links: [],
@@ -154,6 +156,8 @@ export default class GithubSocialGraph {
   }
 
   private drawNames() {
+    /* eslint-disable-next-line @typescript-eslint/no-this-alias */
+    const instance = this;
     const names = this.svg.select('#names');
     names.selectAll('g').remove();
     this.container.names = names
@@ -181,7 +185,7 @@ export default class GithubSocialGraph {
             node.rect = (this as SVGGElement).getBBox();
           }))
           .on('click', (_, { owner: { login: username } }) => {
-            console.log(username);
+            instance.dispatchEvent(new CustomEvent('click-repo', { detail: { username } }));
           });
       })
       .each(function ({ rect: { width, height } }) {
