@@ -1,6 +1,6 @@
 import React from 'react';
 import { useReactiveVar } from '@apollo/client';
-import { usernameVar, userVar } from '../client';
+import { usernameVar, userVar } from '../apollo';
 import { useUserReposLazyQuery } from '../generated/graphql';
 
 function Search(): React.ReactElement {

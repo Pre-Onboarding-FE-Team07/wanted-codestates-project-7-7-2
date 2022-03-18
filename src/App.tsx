@@ -1,6 +1,6 @@
 import { useReactiveVar } from '@apollo/client';
 import { useEffect, useRef } from 'react';
-import { usernameVar, userVar } from './client';
+import { usernameVar, userVar } from './apollo';
 import Search from './components/Search';
 import GithubSocialGraph from './utils/github-social-graph';
 import { useUserReposLazyQuery } from './generated/graphql';
