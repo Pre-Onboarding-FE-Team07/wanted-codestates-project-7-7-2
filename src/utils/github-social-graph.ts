@@ -6,6 +6,7 @@ import {
   Selection,
   Simulation,
   SimulationNodeDatum,
+  ZoomBehavior,
 } from 'd3';
 import { UserReposQuery } from '../generated/graphql';
 import { RepoType, UserType } from '../types/object';
@@ -46,6 +47,8 @@ export default class GithubSocialGraph extends EventTarget {
   private nodeIds: string[];
 
   private simulation: Simulation<ForcedNode, ForcedLink>;
+
+  private zoom: ZoomBehavior<SVGSVGElement, unknown>;
 
   private isShown: boolean;
 
@@ -90,6 +93,21 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.simulation = d3.forceSimulation<ForcedNode, ForcedLink>().alphaDecay(0.1);
     this.simulation.on('tick', this.tick.bind(this));
+
+    const names = this.group('names');
+    const skeletons = this.group('skeletons');
+
+    this.zoom = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.1, 30])
+      .on('zoom', ({ transform }) => {
+        if ((transform.k < 0.3 && this.isShown) || (transform.k > 0.3 && !this.isShown)) {
+          names.attr('display', this.isShown ? 'none' : 'inherit');
+          skeletons.attr('display', this.isShown ? 'inherit' : 'none');
+          this.isShown = !this.isShown;
+        }
+        Object.values(this.container).forEach((container) => container?.attr('transform', transform));
+      });
   }
 
   public push(data: UserReposQuery['user']) {
@@ -228,23 +246,8 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private updateZoom() {
-    const names = this.group('names');
-    const skeletons = this.group('skeletons');
-
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 30])
-      .on('zoom', ({ transform }) => {
-        if ((transform.k < 0.3 && this.isShown) || (transform.k > 0.3 && !this.isShown)) {
-          names.attr('display', this.isShown ? 'none' : 'inherit');
-          skeletons.attr('display', this.isShown ? 'inherit' : 'none');
-          this.isShown = !this.isShown;
-        }
-        Object.values(this.container).forEach((container) => container?.attr('transform', transform));
-      });
-
     const zoomTransform = d3.zoomIdentity.translate(this.size.w / 2, this.size.h / 2).scale(0.3);
-    this.svg.call(zoom).call(zoom.transform, zoomTransform);
+    this.svg.call(this.zoom).call(this.zoom.transform, zoomTransform);
   }
 
   private tick() {
