@@ -220,26 +220,31 @@ export default class GithubSocialGraph extends EventTarget {
       .selectAll('text')
       .data(this.graph.nodes)
       .join('g')
-      .each(function ({ login }) {
+      .each(function ({ login, isInOrganization }) {
         select(this)
           .append('rect')
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
-          .style('fill', () => (login ? 'purple' : '#222'));
+          .style('fill', () => {
+            if (login) return '#845EC2';
+            if (isInOrganization) return '#3C859E';
+            return '#008F7A';
+          });
       })
-      .each(function ({ login, name }) {
+      .each(function ({ login, name, isInOrganization }) {
         (select(this) as Selection<BaseType, ForcedNode, null, unknown>)
           .append('text')
           .attr('fill', 'white')
           .attr('text-anchor', 'middle')
           .attr('alignment-baseline', 'middle')
           .text(() => (login || name))
-          .style('cursor', 'pointer')
+          .style('cursor', isInOrganization ? 'default' : 'pointer')
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
           .call((selection) => selection.each((node) => {
             /* eslint-disable-next-line no-param-reassign */
             node.rect = (this as SVGGElement).getBBox();
           }))
           .on('click', (_, node) => {
+            if (isInOrganization) return;
             if (node.login) {
               const { login: username } = node;
               instance.dispatchEvent(
