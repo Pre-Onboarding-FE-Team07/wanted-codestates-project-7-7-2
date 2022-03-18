@@ -141,6 +141,7 @@ export default class GithubSocialGraph extends EventTarget {
   public push(data: UserReposQuery['user']) {
     if (!data) return;
     const { starredRepositories: repos, ...user } = data;
+    if (this.nodeIds.includes(user.id)) return;
 
     if (user) this.addNode(user);
     repos?.nodes?.forEach((repo) => repo && this.connectNodes(user, repo, ({ id }) => id));
