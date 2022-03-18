@@ -139,6 +139,8 @@ export default class GithubSocialGraph extends EventTarget {
     this.zoom = zoom<SVGSVGElement, unknown>()
       .scaleExtent([constants.zoom.level.min, constants.zoom.level.max])
       .on('zoom', this.zoomed.bind(this));
+
+    this.svg.call(this.zoom);
   }
 
   public push(data: UserReposQuery['user']) {
@@ -274,10 +276,10 @@ export default class GithubSocialGraph extends EventTarget {
 
   private updateZoom() {
     const zoomTransform = zoomIdentity
-      .translate(this.size.w / 2, this.size.h / 2)
+      .translate(this.size.w / 3, this.size.h / 3)
       .scale(constants.zoom.init);
 
-    this.svg.call(this.zoom).call(this.zoom.transform, zoomTransform);
+    this.svg.call(this.zoom.transform, zoomTransform);
   }
 
   private ticked() {
