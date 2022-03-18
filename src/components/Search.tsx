@@ -1,11 +1,11 @@
-import { useReactiveVar } from '@apollo/client';
 import React from 'react';
+import { useReactiveVar } from '@apollo/client';
 import { usernameVar, userVar } from '../client';
 import { useUserReposLazyQuery } from '../generated/graphql';
 
 function Search(): React.ReactElement {
   const user = useReactiveVar(userVar);
-  const value = useReactiveVar(usernameVar);
+  const username = useReactiveVar(usernameVar);
   const [getUserRepos] = useUserReposLazyQuery();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => usernameVar(e.target.value);
@@ -13,7 +13,7 @@ function Search(): React.ReactElement {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await getUserRepos({ variables: { username: value } });
+      const res = await getUserRepos({ variables: { username } });
       if (!res?.data?.user) {
         alert('사용자를 찾을 수 없습니다. ');
         usernameVar('');
@@ -33,7 +33,7 @@ function Search(): React.ReactElement {
         <input
           className="border-b border-gray-200 px-1 py-2 placeholder:text-base focus:outline-none focus:ring-0"
           placeholder="Github 아이디 검색"
-          value={value}
+          value={username}
           onChange={handleChange}
         />
         <button type="submit" className="text-gray-500">
