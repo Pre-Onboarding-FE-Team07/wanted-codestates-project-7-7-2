@@ -12,8 +12,16 @@ export default function App() {
 
   useEffect(() => {
     graph.current = new GithubSocialGraph('#root');
-    graph.current.addEventListener('click-repo', (({ detail: { username } }: CustomEvent) => {
+
+    graph.current.addEventListener('click-repo', ((event: CustomEvent) => {
+      const { detail: { username } } = event;
       getUserRepos({ variables: { username } }).then((res) => userVar(res?.data?.user));
+    }) as EventListener);
+
+    graph.current.addEventListener('click-user', ((event: CustomEvent) => {
+      const { detail: { username, node } } = event;
+      userVar(node);
+      usernameVar(username);
     }) as EventListener);
   }, [getUserRepos]);
 

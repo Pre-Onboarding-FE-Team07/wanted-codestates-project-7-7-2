@@ -35,15 +35,15 @@ const constants = {
     init: 0.3,
     threshold: 0.5,
     level: {
-      min: 0.1,
+      min: 0.05,
       max: 2,
     },
   },
   force: {
-    decay: 0.05,
+    decay: 0.08,
     alpha: 0.5,
-    strength: -3000,
-    distance: 500,
+    strength: -2000,
+    distance: 300,
   },
 } as const;
 
@@ -152,9 +152,8 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   public push(data: UserReposQuery['user']) {
-    if (!data) return;
+    if (!data || this.nodeIds.includes(data.id)) return;
     const { starredRepositories: repos, ...user } = data;
-    if (this.nodeIds.includes(user.id)) return;
 
     if (user) this.addNode(user);
     repos?.nodes?.forEach((repo) => repo && this.connectNodes(user, repo, ({ id }) => id));
@@ -224,7 +223,6 @@ export default class GithubSocialGraph extends EventTarget {
       .each(function ({ login }) {
         select(this)
           .append('rect')
-          .style('cursor', () => (login ? 'auto' : 'pointer'))
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
           .style('fill', () => (login ? 'purple' : '#222'));
       })
@@ -235,14 +233,24 @@ export default class GithubSocialGraph extends EventTarget {
           .attr('text-anchor', 'middle')
           .attr('alignment-baseline', 'middle')
           .text(() => (login || name))
-          .style('cursor', () => (login ? 'auto' : 'pointer'))
+          .style('cursor', 'pointer')
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
           .call((selection) => selection.each((node) => {
             /* eslint-disable-next-line no-param-reassign */
             node.rect = (this as SVGGElement).getBBox();
           }))
-          .on('click', (_, { owner: { login: username } }) => {
-            instance.dispatchEvent(new CustomEvent('click-repo', { detail: { username } }));
+          .on('click', (_, node) => {
+            if (node.login) {
+              const { login: username } = node;
+              instance.dispatchEvent(
+                new CustomEvent('click-user', { detail: { username, node } }),
+              );
+            } else {
+              const { owner: { login: username } } = node;
+              instance.dispatchEvent(
+                new CustomEvent('click-repo', { detail: { username } }),
+              );
+            }
           });
       })
       .each(function ({ rect: { width, height } }) {
