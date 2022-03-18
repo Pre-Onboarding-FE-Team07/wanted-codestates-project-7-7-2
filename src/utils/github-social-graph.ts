@@ -1,7 +1,13 @@
 /* eslint-disable func-names */
 
-import * as d3 from 'd3';
 import {
+  select,
+  zoom,
+  zoomIdentity,
+  forceLink,
+  forceCenter,
+  forceManyBody,
+  forceSimulation,
   BaseType,
   Selection,
   Simulation,
@@ -79,10 +85,9 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.nodeIds = [];
 
-    this.svg = d3.select(parent).select('#network');
+    this.svg = select(parent).select('#network');
     if (this.svg.empty()) {
-      this.svg = d3
-        .select(parent)
+      this.svg = select(parent)
         .append('svg')
         .attr('width', '100%')
         .attr('height', '100%')
@@ -108,8 +113,7 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.isShown = true;
 
-    this.simulation = d3
-      .forceSimulation<ForcedNode, ForcedLink>()
+    this.simulation = forceSimulation<ForcedNode, ForcedLink>()
       .alphaDecay(constants.force.decay);
 
     this.simulation.on('tick', this.tick.bind(this));
@@ -119,8 +123,7 @@ export default class GithubSocialGraph extends EventTarget {
     const skeletons = this.group('skeletons');
     const avatars = this.group('avatars');
 
-    this.zoom = d3
-      .zoom<SVGSVGElement, unknown>()
+    this.zoom = zoom<SVGSVGElement, unknown>()
       .scaleExtent([constants.zoom.level.min, constants.zoom.level.max])
       .on('zoom', ({ transform }) => {
         if (
@@ -167,10 +170,9 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private updateForce() {
-    const charge = d3.forceManyBody().strength(constants.force.strength);
-    const center = d3.forceCenter(this.size.w / 2, this.size.h / 2);
-    const link = d3
-      .forceLink<ForcedNode, ForcedLink>(this.graph.links)
+    const charge = forceManyBody().strength(constants.force.strength);
+    const center = forceCenter(this.size.w / 2, this.size.h / 2);
+    const link = forceLink<ForcedNode, ForcedLink>(this.graph.links)
       .id(({ id }) => id)
       .distance(constants.force.distance);
 
@@ -208,14 +210,14 @@ export default class GithubSocialGraph extends EventTarget {
       .data(this.graph.nodes)
       .join('g')
       .each(function ({ login }) {
-        d3.select(this)
+        select(this)
           .append('rect')
           .style('cursor', () => (login ? 'auto' : 'pointer'))
           .attr('transform', () => `translate(0, ${login ? 40 : 0})`)
           .style('fill', () => (login ? 'purple' : '#222'));
       })
       .each(function ({ login, name }) {
-        (d3.select(this) as Selection<BaseType, ForcedNode, null, unknown>)
+        (select(this) as Selection<BaseType, ForcedNode, null, unknown>)
           .append('text')
           .attr('fill', 'white')
           .attr('text-anchor', 'middle')
@@ -232,7 +234,7 @@ export default class GithubSocialGraph extends EventTarget {
           });
       })
       .each(function ({ rect: { width, height } }) {
-        d3.select(this)
+        select(this)
           .selectAll('rect')
           .attr('width', () => width + 10)
           .attr('height', () => height + 5)
@@ -271,8 +273,7 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private updateZoom() {
-    const zoomTransform = d3
-      .zoomIdentity
+    const zoomTransform = zoomIdentity
       .translate(this.size.w / 2, this.size.h / 2)
       .scale(constants.zoom.init);
 
