@@ -6,6 +6,7 @@ import {
   zoomIdentity,
   forceLink,
   forceCenter,
+  forceCollide,
   forceManyBody,
   forceSimulation,
   BaseType,
@@ -187,15 +188,15 @@ export default class GithubSocialGraph extends EventTarget {
   private updateForce() {
     const charge = forceManyBody<ForcedNode>()
       .strength(constants.force.strength);
-
+    const collide = forceCollide(50);
     const center = forceCenter<ForcedNode>(this.size.w / 2, this.size.h / 2);
-
     const link = forceLink<ForcedNode, ForcedLink>(this.graph.links)
       .id(({ id }) => id)
       .distance(constants.force.distance);
 
     this.simulation
       .nodes(this.graph.nodes)
+      .force('collide', collide)
       .force('center', center)
       .force('charge', charge)
       .force('link', link);
