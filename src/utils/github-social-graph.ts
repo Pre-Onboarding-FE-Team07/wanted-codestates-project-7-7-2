@@ -37,16 +37,18 @@ const constants = {
   zoom: {
     init: 0.3,
     threshold: 0.5,
-    level: {
-      min: 0.05,
-      max: 2,
-    },
+    level: { min: 0.05, max: 2 },
   },
   force: {
-    decay: 0.08,
-    alpha: 0.5,
+    decay: 0.1,
+    velocity: 0.2,
+    alpha: 1,
     strength: -2000,
     distance: 300,
+  },
+  size: {
+    avatar: { w: 100, h: 100 },
+    skeleton: { r: 30 },
   },
 } as const;
 
@@ -142,6 +144,7 @@ export default class GithubSocialGraph extends EventTarget {
 
     this.simulation = forceSimulation<ForcedNode, ForcedLink>()
       .alphaDecay(constants.force.decay)
+      .velocityDecay(constants.force.velocity)
       .on('tick', this.ticked.bind(this));
 
     this.zoom = zoom<SVGSVGElement, unknown>()
@@ -229,7 +232,7 @@ export default class GithubSocialGraph extends EventTarget {
       .join<SVGGElement>('svg:g')
       .classed('name', true)
       .each(function ({ login, isInOrganization }) {
-        select(this)
+        select<SVGGElement, ForcedNode>(this)
           .append<SVGRectElement>('svg:rect')
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
           .style('fill', () => {
@@ -239,7 +242,7 @@ export default class GithubSocialGraph extends EventTarget {
           });
       })
       .each(function ({ login, name, isInOrganization }) {
-        select<BaseType, ForcedNode>(this)
+        select<SVGGElement, ForcedNode>(this)
           .append<SVGTextElement>('svg:text')
           .attr('fill', 'white')
           .attr('text-anchor', 'middle')
@@ -253,7 +256,7 @@ export default class GithubSocialGraph extends EventTarget {
           .on('click', instance.clicked.bind(instance));
       })
       .each(function ({ rect: { width, height } }) {
-        select(this)
+        select<SVGGElement, ForcedNode>(this)
           .selectAll<SVGRectElement, ForcedNode>('rect')
           .attr('width', () => width + 10)
           .attr('height', () => height + 5)
@@ -269,7 +272,7 @@ export default class GithubSocialGraph extends EventTarget {
       .data(this.graph.nodes.filter(({ login }) => !login))
       .join<SVGCircleElement>('svg:circle')
       .classed('skeleton', true)
-      .attr('r', 30)
+      .attr('r', constants.size.skeleton.r)
       .style('fill', '#ccc');
   }
 
@@ -280,13 +283,13 @@ export default class GithubSocialGraph extends EventTarget {
       .data(this.graph.nodes.filter(({ login }) => login))
       .join<SVGForeignObjectElement>('svg:foreignObject')
       .classed('avatar', true)
-      .attr('width', 100)
-      .attr('height', 100);
+      .attr('width', constants.size.avatar.w)
+      .attr('height', constants.size.avatar.h);
 
     this.element.avatars
       .append('xhtml:img')
-      .attr('width', 100)
-      .attr('height', 100)
+      .attr('width', constants.size.avatar.w)
+      .attr('height', constants.size.avatar.h)
       .attr('src', ({ avatarUrl }) => avatarUrl)
       .style('border-radius', '50%');
   }
