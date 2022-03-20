@@ -1,4 +1,4 @@
-/* eslint-disable func-names */
+/* eslint-disable func-names, no-param-reassign */
 
 import {
   select,
@@ -82,6 +82,8 @@ export default class GithubSocialGraph extends EventTarget {
 
   private zoom: ZoomBehavior<RootElement, unknown>;
 
+  private resizeObserver: ResizeObserver;
+
   private isShown: boolean;
 
   constructor(parent: string) {
@@ -90,6 +92,9 @@ export default class GithubSocialGraph extends EventTarget {
     this.nodeIds = [];
     this.graph = { nodes: [], links: [] };
     this.root = select(parent).select('#network');
+
+    const parentNode = document.querySelector(parent);
+    if (!parentNode) throw new Error(`Cannot find in ${parent}`);
 
     if (this.root.empty()) {
       this.root = select(parent)
@@ -143,6 +148,9 @@ export default class GithubSocialGraph extends EventTarget {
       .on('zoom', this.zoomed.bind(this));
 
     this.root.call(this.zoom);
+
+    this.resizeObserver = new ResizeObserver(this.resized.bind(this));
+    this.resizeObserver.observe(parentNode);
   }
 
   public push(data: UserReposQuery['user']) {
@@ -239,7 +247,6 @@ export default class GithubSocialGraph extends EventTarget {
           .style('cursor', isInOrganization ? 'default' : 'pointer')
           .attr('transform', () => `translate(0, ${login ? 70 : 0})`)
           .call((selection) => selection.each((node) => {
-            /* eslint-disable-next-line no-param-reassign */
             node.rect = this.getBBox();
           }))
           .on('click', instance.clicked.bind(instance));
@@ -330,6 +337,11 @@ export default class GithubSocialGraph extends EventTarget {
       this.isShown = !this.isShown;
     }
     Object.values(this.group).forEach((group) => group.attr('transform', transform));
+  }
+
+  private resized() {
+    this.size.w = parseInt(this.root.style('width'), 10);
+    this.size.h = parseInt(this.root.style('height'), 10);
   }
 
   private clicked(_: any, node: ForcedNode) {
