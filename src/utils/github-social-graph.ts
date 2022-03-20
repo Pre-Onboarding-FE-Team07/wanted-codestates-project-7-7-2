@@ -201,22 +201,24 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private drawLines() {
-    this.group.lines.selectAll('svg:line').remove();
+    this.group.lines.selectAll('.line').remove();
     this.container.lines = this.group.lines
-      .selectAll<SVGLineElement, ForcedLink>('svg:line')
+      .selectAll<SVGLineElement, ForcedLink>('line')
       .data(this.graph.links)
       .join<SVGLineElement>('svg:line')
+      .classed('line', true)
       .attr('stroke-width', 1);
   }
 
   private drawNames() {
     /* eslint-disable-next-line @typescript-eslint/no-this-alias */
     const instance = this;
-    this.group.names.selectAll('svg:g').remove();
+    this.group.names.selectAll('.name').remove();
     this.container.names = this.group.names
-      .selectAll<SVGTextElement, ForcedNode>('svg:text')
+      .selectAll<SVGGElement, ForcedNode>('.name')
       .data(this.graph.nodes)
       .join<SVGGElement>('svg:g')
+      .classed('name', true)
       .each(function ({ login, isInOrganization }) {
         select(this)
           .append<SVGRectElement>('svg:rect')
@@ -244,7 +246,7 @@ export default class GithubSocialGraph extends EventTarget {
       })
       .each(function ({ rect: { width, height } }) {
         select(this)
-          .selectAll<SVGRectElement, ForcedNode>('svg:rect')
+          .selectAll<SVGRectElement, ForcedNode>('rect')
           .attr('width', () => width + 10)
           .attr('height', () => height + 5)
           .attr('rx', () => height / 2)
@@ -253,23 +255,23 @@ export default class GithubSocialGraph extends EventTarget {
   }
 
   private drawSkeletons() {
-    this.group.skeletons.selectAll('svg:circle').remove();
+    this.group.skeletons.selectAll('.skeleton').remove();
     this.container.skeletons = this.group.skeletons
-      .data(this.graph.nodes)
-      .selectAll<SVGCircleElement, ForcedNode>('svg:text')
+      .selectAll<SVGCircleElement, ForcedNode>('.skeleton')
+      .data(this.graph.nodes.filter(({ login }) => !login))
       .join<SVGCircleElement>('svg:circle')
-      .filter(({ login }) => !login)
+      .classed('skeleton', true)
       .attr('r', 30)
       .style('fill', '#ccc');
   }
 
   private drawAvatars() {
-    this.group.avatars.selectAll('svg:foreignObject').remove();
+    this.group.avatars.selectAll('.avatar').remove();
     this.container.avatars = this.group.avatars
-      .selectAll<SVGForeignObjectElement, ForcedNode>('svg:circle')
-      .data(this.graph.nodes)
+      .selectAll<SVGForeignObjectElement, ForcedNode>('.avatar')
+      .data(this.graph.nodes.filter(({ login }) => login))
       .join<SVGForeignObjectElement>('svg:foreignObject')
-      .filter(({ login }) => !!login)
+      .classed('avatar', true)
       .attr('width', 100)
       .attr('height', 100);
 
@@ -294,8 +296,8 @@ export default class GithubSocialGraph extends EventTarget {
       lines, names, skeletons, avatars,
     } = this.container;
 
-    const text = names?.selectAll<SVGTextElement, ForcedNode>('svg:text');
-    const rect = names?.selectAll<SVGRectElement, ForcedNode>('svg:rect');
+    const text = names?.selectAll<SVGTextElement, ForcedNode>('text');
+    const rect = names?.selectAll<SVGRectElement, ForcedNode>('rect');
 
     lines
       ?.attr('x1', (link) => (link.source as ForcedNode).x || 0)
