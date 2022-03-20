@@ -10,7 +10,9 @@ query UserRepos($username: String!) {
       nodes {
         id
         name
+        isInOrganization
         owner {
+          id
           login
         }
       }
