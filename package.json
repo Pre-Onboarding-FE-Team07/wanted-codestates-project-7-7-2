@@ -44,8 +44,7 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "prepare": "husky install",
     "generate": "graphql-codegen -r dotenv/config --config codegen.yml",
-    "prestart": "yarn generate",
-    "prebuild": "yarn generate"
+    "postinstall": "npm run generate"
   },
   "browserslist": {
     "production": [
