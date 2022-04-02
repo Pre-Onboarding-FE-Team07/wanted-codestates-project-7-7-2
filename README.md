@@ -100,7 +100,7 @@ graph.push(user);
 
 ## 어려웠던 점 (에러 핸들링)
 
-- 과제 요구 사항엔 Github Rest API가 주어졌지만, 하나의 작업을 위해 두 번 요청(user와 repos)을 해야 하는 `under-fetching` 문제와 불필요한 정보까지 전달받아 네트워크 비용을 낭비하는 `over-fetching` 문제가 있다고 판단하였습니다. 두 가지 문제를 해결하기 위해 GraphQL API를 사용하기로 결정하였습니다. 이에 따라, GraphQL 상태 관리 라이브러리인 Apollo를 선택했고 API로부터 타입 정보를 가져오기 위해 graphql-codegen을 활용했습니다. codegen의 경우, `yarn generate` 명령어로 실행하거나 `start` 혹은 `build`를 실행하면 사전에 실행할 수 있게끔 해두었고 용량이 매우 큰 파일이므로 버전 관리에서 제외하였습니다.
+- 과제 요구 사항엔 Github Rest API가 주어졌지만, 하나의 작업을 위해 두 번 요청(user와 repos)을 해야 하는 `under-fetching` 문제와 불필요한 정보까지 전달받아 네트워크 비용을 낭비하는 `over-fetching` 문제가 있다고 판단하였습니다. 두 가지 문제를 해결하기 위해 GraphQL API를 사용하기로 결정하였습니다. 이에 따라, GraphQL 상태 관리 라이브러리인 Apollo를 선택했고 API로부터 타입 정보를 가져오기 위해 graphql-codegen을 활용했습니다. codegen의 경우, 초기 의존성 패키지 설치를 위해 `yarn` 명령어를 실행하거나, 따로 `yarn generate` 명령어를 실행하면 `src/generated/graphql.ts` 파일이 생성되도록 하였습니다. 용량이 매우 큰 파일이므로 버전 관리에서 제외하였습니다.
 
 - 추가 그래프를 생성하기 위해 API로 전달받은 데이터를 전달할 때, [`TypeError: Cannot add property id, object is not extensible`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Cant_define_property_object_not_extensible) 에러가 발생하는 문제가 있었습니다. 어떤 문제로 발생한건지 확실하지 않아 DevTools의 `Sources` 탭에서 디버깅 기능을 활용하여 문제를 발견했습니다. `d3-force` 모듈의 경우, 노드 객체에 위치 정보 프로퍼티(x, y 등)를 추가하는데 이 과정에서 객체가 확장 불가능하여 발생하는 에러였습니다. 검색 결과, Apollo의 `useReactiveVar`는 데이터의 불변성을 유지하기 위해 [`Object.preventExtensions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions) 처리된 변경 불가능한 객체를 반환하기 때문에 발생하는 문제였습니다. 그리 복잡한 객체를 전달하는 것이 아니므로 `JSON.parse(JSON.stringify(user))` 방법으로 깊은 복사하여 변경 가능한 객체를 전달하는 방식으로 문제를 해결했습니다.
 
