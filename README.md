@@ -10,7 +10,7 @@ Github ID를 검색하여 사용자의 Star 저장소 목록을 가져와 시각
 
 ## 프로젝트 실행 방법
 
-- [배포 사이트 바로가기](https://github-stars-network-graph.surge.sh)
+- [배포 사이트 바로가기](https://github-stars-network.surge.sh/)
 - 로컬 :
 
 >💡 개발 환경에서 실행하기 위해선 [Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)을 필요로 합니다.
